@@ -14,12 +14,12 @@ export function Footer() {
 
           {/* Center */}
           <div className="space-y-3 text-sm text-white/80">
-            <FooterRow icon="📞" text="+7 (701) - 999 - 99 - 99 (Виктор)" />
+            <FooterRow icon="📞" text="+7 702 945 9444 (Виктор)" />
             <FooterRow
               icon="📍"
               text="г Алматы, Бостандыкский р-н, ул. Сатпаева, д. 90/1"
             />
-            <FooterRow icon="✉️" text="info-igs@yandex.kz" />
+            <FooterRow icon="✉️" text="info-iqs@yandex.kz" />
           </div>
 
           {/* Right */}

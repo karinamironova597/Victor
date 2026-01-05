@@ -45,7 +45,7 @@ export function Contact() {
           <div className="mt-8 space-y-4">
             <ContactRow
               icon="📞"
-              text="+7 (701) - 999 - 99 - 99 (Виктор)"
+              text="+7 702 945 9444 (Виктор)"
               href="tel:+77019999999"
             />
             <ContactRow
@@ -54,7 +54,7 @@ export function Contact() {
             />
             <ContactRow
               icon="✉️"
-              text="info-igs@yandex.kz"
+              text="info-iqs@yandex.kz"
               href="mailto:info-igs@yandex.kz"
             />
           </div>

@@ -7,12 +7,12 @@ type Item = {
 };
 
 const itemsLeft: Item[] = [
-  { icon: "📞", text: "+7 (701) 999-99-99 (Виктор)", href: "tel:+77019999999" },
+  { icon: "📞", text: "+7 702 945 9444 (Виктор)", href: "tel:+77019999999" },
   {
     icon: "📍",
     text: "г. Алматы, Бостандыкский р-н, ул. Сатпаева, д. 90/1",
   },
-  { icon: "✉️", text: "info-qs@yandex.kz", href: "mailto:info-qs@yandex.kz" },
+  { icon: "✉️", text: "info-iqs@yandex.kz", href: "mailto:info-qs@yandex.kz" },
 ];
 
 export function TopInfoBar() {
@@ -50,7 +50,7 @@ export function TopInfoBar() {
             <Link
                 href="https://wa.me/77029459444?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%21%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E%20%D0%BF%D0%BE%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B5%20%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D0%B8."
                 target="_blank"
-                rel="noopener noreferrer"
+                    rel="noopener noreferrer"
               className="inline-flex h-9 items-center gap-2 rounded-full border border-amber-400 px-4 text-amber-300 hover:bg-amber-400/10"
             >
               <span>Связаться с нами</span>
