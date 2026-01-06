@@ -49,7 +49,7 @@ const CARDS: EquipmentCard[] = [
 
 export function Equipment() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-20">
+    <section id="equipment" className="mx-auto max-w-6xl px-4 py-20">
       {/* Title */}
       <div className="mb-10 text-center">
         <h2 className="text-2xl font-semibold text-neutral-900 md:text-3xl">

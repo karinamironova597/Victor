@@ -1,29 +1,27 @@
 // src/components/site/Experience.tsx
-
+import Image from "next/image";
 export function Experience() {
   return (
-    <section className="bg-neutral-50">
+    <section id="experience" className="bg-neutral-50">
       <div className="mx-auto max-w-6xl px-4 py-16">
         <div className="rounded-[32px] bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.08)] md:p-6">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             {/* LEFT (visual) */}
-            <div className="relative overflow-hidden rounded-[28px] min-h-[360px] md:min-h-[520px]">
-              {/* background image (лучше экспортнуть из Figma как experience-bg.png) */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: "url(/experience-bg.png)" }}
-              />
-              {/* мягкий внутренний бордер как в макете */}
-              <div className="pointer-events-none absolute inset-3 rounded-[22px] ring-2 ring-white/70" />
-
-             
+              <div className="relative overflow-hidden rounded-3xl bg-neutral-900/5">
+              <div className="p-4 md:p-6">
+                <Image
+                  src="/lol.svg.png"
+                  alt="Опыт компании"
+                  width={900}
+                  height={900}
+                  className="h-auto w-full"
+                  priority
+                />
+              </div>
             </div>
-
             {/* RIGHT (text) */}
             <div className="px-2 pb-2 md:px-0">
-              <div className="mb-4 inline-flex rounded-full bg-neutral-100 px-4 py-2 text-sm text-neutral-600">
-                БОГАТЫЙ ОПЫТ
-              </div>
+              
 
               <h3 className="text-2xl font-semibold text-neutral-900 md:text-3xl">
                 Залог нашего успеха — наш опыт

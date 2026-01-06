@@ -2,10 +2,11 @@
 
 export function Features() {
   return (
-    <section className="bg-neutral-50">
-      <div className="mx-auto max-w-6xl px-4 py-20">
+    <section id="features" className="bg-neutral-50">
+      {/* ✅ меньше отступы на мобилке, на md+ как было */}
+      <div className="mx-auto max-w-6xl px-4 py-10 md:py-20">
         {/* Header */}
-        <div className="mb-12 text-center">
+        <div className="mb-10 text-center md:mb-12">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-300 px-4 py-1 text-sm text-blue-600">
             ✨ Наши решения
           </div>
@@ -19,7 +20,7 @@ export function Features() {
         <div className="rounded-[32px] bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.08)] md:p-6">
           <div className="grid gap-8 md:grid-cols-2 md:items-center">
             {/* Left image */}
-            <div className="relative min-h-[340px] overflow-hidden rounded-[28px] bg-neutral-100 md:min-h-[420px]">
+            <div className="relative min-h-[300px] overflow-hidden rounded-[28px] bg-neutral-100 md:min-h-[420px]">
               <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: "url(/features.png)" }}
@@ -29,7 +30,7 @@ export function Features() {
             </div>
 
             {/* Right content */}
-            <div className="px-2 pb-4 md:px-0">
+            <div className="px-2 pb-3 md:px-0 md:pb-4">
               <div className="mb-4 inline-flex rounded-full bg-neutral-100 px-4 py-2 text-sm text-neutral-600">
                 Стабильность и надежность
               </div>
@@ -67,7 +68,7 @@ export function Features() {
               </ul>
 
               <a
-               href="https://wa.me/77029459444?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%21%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%86%D0%B8%D1%8E%20%D0%BF%D0%BE%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B5%20%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D0%B8."
+                href="https://wa.me/77029459444?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5%21%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%BA%D0%BE%D0%BD%D1%81%D1%83%D0%BB%D1%8C%D1%0%D0%B0%D1%86%D0%B8%D1%8E%20%D0%BF%D0%BE%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B5%20%D0%B1%D0%B5%D0%B7%D0%BE%D0%BF%D0%B0%D1%81%D0%BD%D0%BE%D1%81%D1%82%D0%B8."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-amber-400 px-4 py-2 text-sm font-medium text-black hover:bg-amber-300"

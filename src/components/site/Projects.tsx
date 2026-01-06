@@ -2,11 +2,11 @@
 
 export function Projects() {
   return (
-    <section className="bg-neutral-50">
-      <div className="mx-auto max-w-6xl px-4 py-24">
+    <section id="projects" className="bg-neutral-50">
+      {/* ✅ меньше вертикальные отступы на мобилке, большие остаются на md+ */}
+      <div className="mx-auto max-w-6xl px-4 py-10 md:py-24">
         {/* Outer card */}
         <div className="rounded-[32px] bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] md:p-10">
-          {/* IMPORTANT: делаем правую часть чуть шире (5/7) как в макете */}
           <div className="grid gap-10 md:grid-cols-12 md:items-center">
             {/* LEFT */}
             <div className="md:col-span-5">
@@ -87,27 +87,27 @@ export function Projects() {
                   }}
                 />
 
-                {/* content area height (как в макете) */}
+                {/* content area height */}
                 <div className="relative min-h-[420px] md:min-h-[520px]">
                   {/* Card 1: ЖК */}
                   <FigureCard
                     img="/projects-home.png"
                     label="Жилые комплексы"
-                    className="left-[10%] top-[12%] w-[58%] rotate-[-6deg] md:w-[52%]"
+                    className="left-[10%] top-[10%] w-[58%] rotate-[-6deg] md:left-[10%] md:top-[12%] md:w-[52%]"
                   />
 
                   {/* Card 2: Склады */}
                   <FigureCard
                     img="/projects-warehouse.png"
                     label="Склады"
-                    className="right-[10%] top-[18%] w-[42%] rotate-[4deg] md:w-[38%]"
+                    className="right-[10%] top-[26%] w-[42%] rotate-[4deg] md:right-[10%] md:top-[18%] md:w-[38%]"
                   />
 
                   {/* Card 3: ТЦ */}
                   <FigureCard
                     img="/projects-mall.png"
                     label="Торговые центры"
-                    className="left-[24%] top-[52%] w-[62%] rotate-[3deg] md:left-[26%] md:w-[56%]"
+                    className="left-[24%] top-[52%] w-[62%] rotate-[3deg] md:left-[26%] md:top-[52%] md:w-[56%]"
                   />
                 </div>
               </div>
@@ -139,8 +139,20 @@ function FigureCard({
         />
       </div>
 
-      <div className="mt-2 text-center text-sm text-neutral-700">
-        {label}
+      {/* ✅ Mobile-safe label (не наезжает, переносится, читается) */}
+      <div className="mt-2 flex justify-center">
+        <span
+          className={[
+            "inline-block max-w-[92%] text-center break-words",
+            "rounded-full bg-white/90 px-3 py-1",
+            "text-[12px] leading-tight text-neutral-800",
+            "shadow-sm backdrop-blur",
+            "md:max-w-full md:rounded-none md:bg-transparent md:px-0 md:py-0 md:shadow-none md:backdrop-blur-0",
+            "md:text-sm md:leading-normal md:text-neutral-700",
+          ].join(" ")}
+        >
+          {label}
+        </span>
       </div>
     </div>
   );
@@ -155,6 +167,8 @@ function CheckIcon() {
         fill="none"
         stroke="currentColor"
         strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       >
         <path d="M5 13l4 4L19 7" />
       </svg>

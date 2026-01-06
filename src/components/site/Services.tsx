@@ -2,7 +2,7 @@
 
 export function Services() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-24">
+    <section id="services" className="mx-auto max-w-6xl px-4 py-24">
       {/* Header */}
       <div className="mb-14 text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-300 px-4 py-1 text-sm text-blue-600">
@@ -18,7 +18,7 @@ export function Services() {
       <div className="grid gap-6 md:grid-cols-3">
         {/* Большая карточка */}
         <ServiceCard
-          image="/services-install.png"
+          image="muzhic.jpg"
           title="Поставка и монтаж оборудования"
           text="Выполняем поставку и профессиональный монтаж оборудования видеонаблюдения и комплексных систем безопасности на объектах любой сложности с гарантией качества."
           className="md:col-span-2 md:row-span-2 min-h-[360px] md:min-h-[520px]"
