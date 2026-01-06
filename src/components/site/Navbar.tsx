@@ -111,7 +111,7 @@ export function Navbar() {
                       scrolled ? "text-neutral-900" : "text-white",
                     ].join(" ")}
                   >
-                    PromKvalBiOT
+                    «ПромКвалБиОТ»
                   </span>
                   <span
                     className={[
