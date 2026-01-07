@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,6 +78,28 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* JSON-LD (структурированные данные для SEO) */}
+        <JsonLd
+          id="jsonld-localbusiness"
+          data={{
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: "PromKvalBIOT",
+            url: "https://iqsafety.kz",
+            telephone: "+77029459444",
+            email: "info-iqs@yandex.kz",
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Алматы",
+              addressCountry: "KZ",
+              streetAddress: "ул. Сатпаева, 90/1",
+            },
+            areaServed: ["Алматы", "Казахстан"],
+            openingHours: ["Mo-Fr 09:00-18:00"],
+            sameAs: ["https://wa.me/77029459444"],
+          }}
+        />
+
         {children}
       </body>
     </html>
