@@ -22,6 +22,10 @@ export const metadata: Metadata = {
     template: "%s | PromKvalBIOT",
   },
 
+  verification: {
+    google: 'TYLO_sLc0DQ0v5DE6mpinWKV_8FH5luMv4JiByr_09w', // Add your unique code here
+  },  
+
   description:
     "Проектирование, монтаж и обслуживание систем безопасности: видеонаблюдение, СКУД, пожарная сигнализация. Работаем по Алматы и Казахстану.",
 
