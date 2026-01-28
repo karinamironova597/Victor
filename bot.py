@@ -35,13 +35,13 @@ async def save_news(source: str, title: str, content: str, image_url: str = None
             "content": content,
             "image_url": image_url,
             "post_url": post_url,
-            "deleted": False  # По умолчанию не удалена
+            "deleted": False
         }
         result = supabase.table("news").insert(data).execute()
-        logger.info(f"Сохранено: {title[:50]}...")
+        logger.info(f"✅ Сохранено: {title[:50]}...")
         return result
     except Exception as e:
-        logger.error(f"Ошибка сохранения: {e}")
+        logger.error(f"❌ Ошибка сохранения: {e}")
         return None
 
 
@@ -101,7 +101,6 @@ async def delete_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         news_id = int(context.args[0])
         
-        # Помечаем как удалённую
         response = supabase.table('news').update({
             'deleted': True
         }).eq('id', news_id).execute()
@@ -126,7 +125,6 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         deleted = len([n for n in all_news.data if n.get('deleted')])
         active = total - deleted
         
-        # Подсчёт по источникам
         sources = {}
         for news in all_news.data:
             source = news.get('source', 'Unknown')
@@ -153,29 +151,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not message:
         return
     
-    # Получаем текст
     text = message.text or message.caption or ""
     
-    # Игнорируем команды
     if text.startswith('/'):
         return
     
-    # Получаем фото
     image_url = None
     if message.photo:
-        photo = message.photo[-1]  # Самое большое фото
+        photo = message.photo[-1]
         file = await context.bot.get_file(photo.file_id)
         image_url = file.file_path
     
-    # Ссылка на пост (если это из канала)
     post_url = None
     if update.channel_post:
         post_url = f"https://t.me/{CHANNEL_ID.replace('@', '')}/{message.message_id}"
     
-    # Заголовок — первая строка или первые 100 символов
     title = text.split('\n')[0][:100] if text else "Новость IQ Safety"
     
-    # Сохраняем
     result = await save_news(
         source="IQ Safety",
         title=title,
@@ -184,7 +176,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         post_url=post_url
     )
     
-    # Если сообщение из личного чата - публикуем в канал
     if update.message and result:
         try:
             if image_url:
@@ -208,134 +199,146 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def fetch_html(url: str) -> Optional[str]:
     """Загружает HTML страницы"""
     try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=30) as response:
+            async with session.get(url, timeout=30, headers=headers) as response:
                 if response.status == 200:
                     return await response.text()
     except Exception as e:
-        logger.error(f"Ошибка загрузки {url}: {e}")
+        logger.error(f"❌ Ошибка загрузки {url}: {e}")
     return None
 
 
-async def parse_perco():
-    """Парсит новости с PERCO"""
-    logger.info("Парсинг PERCO...")
-    url = "https://www.perco.ru/news/"
+async def parse_tengrinews():
+    """Парсит Tengrinews.kz - главные новости Казахстана"""
+    logger.info("🇰🇿 Парсинг Tengrinews.kz...")
+    url = "https://tengrinews.kz/"
     html = await fetch_html(url)
     if not html:
         return
     
     soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, .news-list-item, article')[:5]
+    news_items = soup.select('.main-news_top_item, .main-news_content_item')[:5]
     
+    count = 0
     for item in news_items:
         try:
-            title_el = item.select_one('h2, h3, .title, a')
+            title_el = item.select_one('.main-news_top_item_title, .main-news_content_item_title, a')
             title = title_el.get_text(strip=True) if title_el else None
             
             link_el = item.select_one('a[href]')
             link = link_el['href'] if link_el else None
             if link and not link.startswith('http'):
-                link = f"https://www.perco.ru{link}"
-            
-            content_el = item.select_one('p, .description, .text')
-            content = content_el.get_text(strip=True) if content_el else ""
+                link = f"https://tengrinews.kz{link}"
             
             img_el = item.select_one('img')
-            image = img_el['src'] if img_el else None
+            image = img_el.get('src') or img_el.get('data-src') if img_el else None
             if image and not image.startswith('http'):
-                image = f"https://www.perco.ru{image}"
+                image = f"https://tengrinews.kz{image}"
             
-            if title:
-                # Проверяем что такой новости ещё нет
+            if title and len(title) > 10:
                 existing = supabase.table("news").select("id").eq("title", title).execute()
                 if not existing.data:
-                    await save_news("PERCO", title, content, image, link)
+                    await save_news("Tengrinews", title, title, image, link)
+                    count += 1
         except Exception as e:
-            logger.error(f"Ошибка парсинга PERCO: {e}")
+            logger.error(f"Ошибка парсинга Tengrinews: {e}")
+    
+    logger.info(f"📊 Tengrinews: добавлено {count} новостей")
 
 
-async def parse_hikvision():
-    """Парсит новости с Hikvision"""
-    logger.info("Парсинг Hikvision...")
-    url = "https://www.hikvision.com/ru/newsroom/latest-news/"
+async def parse_forbes_kz():
+    """Парсит Forbes.kz - бизнес новости"""
+    logger.info("💼 Парсинг Forbes.kz...")
+    url = "https://forbes.kz/"
     html = await fetch_html(url)
     if not html:
         return
     
     soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, .news-card, article, .item')[:5]
+    news_items = soup.select('article, .article-item, .news-item')[:5]
     
+    count = 0
     for item in news_items:
         try:
-            title_el = item.select_one('h2, h3, .title, a')
+            title_el = item.select_one('h2, h3, .article-title, a')
             title = title_el.get_text(strip=True) if title_el else None
             
             link_el = item.select_one('a[href]')
             link = link_el['href'] if link_el else None
             if link and not link.startswith('http'):
-                link = f"https://www.hikvision.com{link}"
+                link = f"https://forbes.kz{link}"
             
-            content_el = item.select_one('p, .description')
-            content = content_el.get_text(strip=True) if content_el else ""
+            content_el = item.select_one('p, .excerpt, .description')
+            content = content_el.get_text(strip=True) if content_el else title
             
             img_el = item.select_one('img')
             image = img_el.get('src') or img_el.get('data-src') if img_el else None
             
-            if title:
+            if title and len(title) > 10:
                 existing = supabase.table("news").select("id").eq("title", title).execute()
                 if not existing.data:
-                    await save_news("Hikvision", title, content, image, link)
+                    await save_news("Forbes KZ", title, content, image, link)
+                    count += 1
         except Exception as e:
-            logger.error(f"Ошибка парсинга Hikvision: {e}")
+            logger.error(f"Ошибка парсинга Forbes: {e}")
+    
+    logger.info(f"📊 Forbes KZ: добавлено {count} новостей")
 
 
-async def parse_tbloc():
-    """Парсит новости с TBLOC"""
-    logger.info("Парсинг TBLOC...")
-    url = "https://t-bloc.ru/news/"
+async def parse_zakon_kz():
+    """Парсит Zakon.kz - правовой портал"""
+    logger.info("⚖️ Парсинг Zakon.kz...")
+    url = "https://www.zakon.kz/news"
     html = await fetch_html(url)
     if not html:
         return
     
     soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, article, .post')[:5]
+    news_items = soup.select('.news-item, article, .post-item')[:5]
     
+    count = 0
     for item in news_items:
         try:
-            title_el = item.select_one('h2, h3, .title, a')
+            title_el = item.select_one('h2, h3, .news-title, a')
             title = title_el.get_text(strip=True) if title_el else None
             
             link_el = item.select_one('a[href]')
             link = link_el['href'] if link_el else None
             if link and not link.startswith('http'):
-                link = f"https://t-bloc.ru{link}"
+                link = f"https://www.zakon.kz{link}"
             
-            content_el = item.select_one('p, .description')
-            content = content_el.get_text(strip=True) if content_el else ""
+            content_el = item.select_one('p, .news-excerpt')
+            content = content_el.get_text(strip=True) if content_el else title
             
             img_el = item.select_one('img')
-            image = img_el['src'] if img_el else None
+            image = img_el.get('src') if img_el else None
             
-            if title:
+            if title and len(title) > 10:
                 existing = supabase.table("news").select("id").eq("title", title).execute()
                 if not existing.data:
-                    await save_news("TBLOC", title, content, image, link)
+                    await save_news("Zakon.kz", title, content, image, link)
+                    count += 1
         except Exception as e:
-            logger.error(f"Ошибка парсинга TBLOC: {e}")
+            logger.error(f"Ошибка парсинга Zakon: {e}")
+    
+    logger.info(f"📊 Zakon.kz: добавлено {count} новостей")
 
 
-async def parse_zkteco():
-    """Парсит новости с ZKTeco"""
-    logger.info("Парсинг ZKTeco...")
-    url = "https://www.zkteco.ru/news/"
+async def parse_inbusiness():
+    """Парсит InBusiness.kz - деловой портал"""
+    logger.info("💰 Парсинг InBusiness.kz...")
+    url = "https://inbusiness.kz/ru/news"
     html = await fetch_html(url)
     if not html:
         return
     
     soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, article, .post, .news-card')[:5]
+    news_items = soup.select('.news-list-item, article, .news-item')[:5]
     
+    count = 0
     for item in news_items:
         try:
             title_el = item.select_one('h2, h3, .title, a')
@@ -344,175 +347,74 @@ async def parse_zkteco():
             link_el = item.select_one('a[href]')
             link = link_el['href'] if link_el else None
             if link and not link.startswith('http'):
-                link = f"https://www.zkteco.ru{link}"
+                link = f"https://inbusiness.kz{link}"
             
             content_el = item.select_one('p, .description')
-            content = content_el.get_text(strip=True) if content_el else ""
+            content = content_el.get_text(strip=True) if content_el else title
+            
+            img_el = item.select_one('img')
+            image = img_el.get('src') if img_el else None
+            
+            if title and len(title) > 10:
+                existing = supabase.table("news").select("id").eq("title", title).execute()
+                if not existing.data:
+                    await save_news("InBusiness", title, content, image, link)
+                    count += 1
+        except Exception as e:
+            logger.error(f"Ошибка парсинга InBusiness: {e}")
+    
+    logger.info(f"📊 InBusiness: добавлено {count} новостей")
+
+
+async def parse_kapital_kz():
+    """Парсит Kapital.kz - экономический портал"""
+    logger.info("📈 Парсинг Kapital.kz...")
+    url = "https://kapital.kz/economic"
+    html = await fetch_html(url)
+    if not html:
+        return
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    news_items = soup.select('article, .news-item, .post')[:5]
+    
+    count = 0
+    for item in news_items:
+        try:
+            title_el = item.select_one('h2, h3, .title, a')
+            title = title_el.get_text(strip=True) if title_el else None
+            
+            link_el = item.select_one('a[href]')
+            link = link_el['href'] if link_el else None
+            if link and not link.startswith('http'):
+                link = f"https://kapital.kz{link}"
+            
+            content_el = item.select_one('p, .description')
+            content = content_el.get_text(strip=True) if content_el else title
             
             img_el = item.select_one('img')
             image = img_el.get('src') or img_el.get('data-src') if img_el else None
             
-            if title:
+            if title and len(title) > 10:
                 existing = supabase.table("news").select("id").eq("title", title).execute()
                 if not existing.data:
-                    await save_news("ZKTeco", title, content, image, link)
+                    await save_news("Kapital.kz", title, content, image, link)
+                    count += 1
         except Exception as e:
-            logger.error(f"Ошибка парсинга ZKTeco: {e}")
-
-
-async def parse_dahua():
-    """Парсит новости с Dahua"""
-    logger.info("Парсинг Dahua...")
-    url = "https://www.dahuasecurity.com/ru/newsEvents/news"
-    html = await fetch_html(url)
-    if not html:
-        return
+            logger.error(f"Ошибка парсинга Kapital: {e}")
     
-    soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, article, .news-list li, .item')[:5]
-    
-    for item in news_items:
-        try:
-            title_el = item.select_one('h2, h3, .title, a')
-            title = title_el.get_text(strip=True) if title_el else None
-            
-            link_el = item.select_one('a[href]')
-            link = link_el['href'] if link_el else None
-            if link and not link.startswith('http'):
-                link = f"https://www.dahuasecurity.com{link}"
-            
-            content_el = item.select_one('p, .description, .text')
-            content = content_el.get_text(strip=True) if content_el else ""
-            
-            img_el = item.select_one('img')
-            image = img_el.get('src') if img_el else None
-            
-            if title:
-                existing = supabase.table("news").select("id").eq("title", title).execute()
-                if not existing.data:
-                    await save_news("Dahua", title, content, image, link)
-        except Exception as e:
-            logger.error(f"Ошибка парсинга Dahua: {e}")
-
-
-async def parse_axis():
-    """Парсит новости с Axis Communications"""
-    logger.info("Парсинг Axis...")
-    url = "https://www.axis.com/ru-ru/about-axis/news"
-    html = await fetch_html(url)
-    if not html:
-        return
-    
-    soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, article, .news-card, .item')[:5]
-    
-    for item in news_items:
-        try:
-            title_el = item.select_one('h2, h3, .title, a')
-            title = title_el.get_text(strip=True) if title_el else None
-            
-            link_el = item.select_one('a[href]')
-            link = link_el['href'] if link_el else None
-            if link and not link.startswith('http'):
-                link = f"https://www.axis.com{link}"
-            
-            content_el = item.select_one('p, .description')
-            content = content_el.get_text(strip=True) if content_el else ""
-            
-            img_el = item.select_one('img')
-            image = img_el.get('src') if img_el else None
-            
-            if title:
-                existing = supabase.table("news").select("id").eq("title", title).execute()
-                if not existing.data:
-                    await save_news("Axis", title, content, image, link)
-        except Exception as e:
-            logger.error(f"Ошибка парсинга Axis: {e}")
-
-
-async def parse_bolid():
-    """Парсит новости с Болид (российский производитель)"""
-    logger.info("Парсинг Болид...")
-    url = "https://bolid.ru/company/news/"
-    html = await fetch_html(url)
-    if not html:
-        return
-    
-    soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, article, .news-list-item, .item')[:5]
-    
-    for item in news_items:
-        try:
-            title_el = item.select_one('h2, h3, .title, a')
-            title = title_el.get_text(strip=True) if title_el else None
-            
-            link_el = item.select_one('a[href]')
-            link = link_el['href'] if link_el else None
-            if link and not link.startswith('http'):
-                link = f"https://bolid.ru{link}"
-            
-            content_el = item.select_one('p, .description, .anons')
-            content = content_el.get_text(strip=True) if content_el else ""
-            
-            img_el = item.select_one('img')
-            image = img_el.get('src') if img_el else None
-            if image and not image.startswith('http'):
-                image = f"https://bolid.ru{image}"
-            
-            if title:
-                existing = supabase.table("news").select("id").eq("title", title).execute()
-                if not existing.data:
-                    await save_news("Болид", title, content, image, link)
-        except Exception as e:
-            logger.error(f"Ошибка парсинга Болид: {e}")
-
-
-async def parse_securitymedia():
-    """Парсит новости с Security Media (отраслевой портал)"""
-    logger.info("Парсинг SecurityMedia...")
-    url = "https://www.securitymedia.ru/news/"
-    html = await fetch_html(url)
-    if not html:
-        return
-    
-    soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, article, .post, .item')[:5]
-    
-    for item in news_items:
-        try:
-            title_el = item.select_one('h2, h3, .title, a')
-            title = title_el.get_text(strip=True) if title_el else None
-            
-            link_el = item.select_one('a[href]')
-            link = link_el['href'] if link_el else None
-            if link and not link.startswith('http'):
-                link = f"https://www.securitymedia.ru{link}"
-            
-            content_el = item.select_one('p, .description, .anons')
-            content = content_el.get_text(strip=True) if content_el else ""
-            
-            img_el = item.select_one('img')
-            image = img_el.get('src') if img_el else None
-            
-            if title:
-                existing = supabase.table("news").select("id").eq("title", title).execute()
-                if not existing.data:
-                    await save_news("Отрасль", title, content, image, link)
-        except Exception as e:
-            logger.error(f"Ошибка парсинга SecurityMedia: {e}")
+    logger.info(f"📊 Kapital.kz: добавлено {count} новостей")
 
 
 async def parse_all_sites():
     """Парсит все сайты"""
-    logger.info("🔄 Начинаю парсинг всех сайтов...")
-    await parse_perco()
-    await parse_hikvision()
-    await parse_tbloc()
-    await parse_zkteco()
-    await parse_dahua()
-    await parse_axis()
-    await parse_bolid()
-    await parse_securitymedia()
+    logger.info("🔄 Начинаю парсинг казахстанских сайтов...")
+    
+    await parse_tengrinews()
+    await parse_forbes_kz()
+    await parse_zakon_kz()
+    await parse_inbusiness()
+    await parse_kapital_kz()
+    
     logger.info("✅ Парсинг всех сайтов завершён")
 
 
@@ -525,7 +427,6 @@ async def scheduled_parsing(context: ContextTypes.DEFAULT_TYPE):
 # ============ MAIN ============
 def main():
     """Запуск бота"""
-    # Создаём приложение
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     
     # Команды
@@ -535,15 +436,15 @@ def main():
     app.add_handler(CommandHandler("delete", delete_command))
     app.add_handler(CommandHandler("stats", stats_command))
     
-    # Обработчик всех сообщений (и из личного чата, и из канала)
+    # Обработчик сообщений
     app.add_handler(MessageHandler(filters.ALL, handle_message))
     
     # Планировщик парсинга (каждые 2 часа)
     job_queue = app.job_queue
     job_queue.run_repeating(scheduled_parsing, interval=7200, first=10)
     
-    # Запускаем
     logger.info("🚀 Бот запущен!")
+    logger.info("🇰🇿 Парсинг казахстанских новостных сайтов")
     logger.info("📋 Первый парсинг через 10 секунд, затем каждые 2 часа")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
