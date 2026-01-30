@@ -908,10 +908,19 @@ async def parse_orion_m2m():
             title_el = item.select_one('h2, h3, .title, a')
             title = title_el.get_text(strip=True) if title_el else None
             
+            # Пропускаем телефоны и короткие заголовки
+            if not title or len(title) < 15 or title.startswith('+7'):
+                continue
+            
             link_el = item.select_one('a[href]')
             link = link_el['href'] if link_el else None
-            if link and not link.startswith('http'):
-                link = f"https://orion-m2m.kz{link}"
+            
+            # Валидация ссылки - пропускаем tel: и mailto:
+            if link:
+                if link.startswith('tel:') or link.startswith('mailto:'):
+                    continue
+                if not link.startswith('http'):
+                    link = f"https://orion-m2m.kz{link}"
             
             content_el = item.select_one('p, .description')
             content = content_el.get_text(strip=True) if content_el else title
