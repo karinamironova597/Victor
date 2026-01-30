@@ -354,7 +354,13 @@ def extract_image(item, base_url: str) -> Optional[str]:
     image_url = image_url.strip()
     
     # Игнорируем placeholder-ы и иконки
-    if any(x in image_url.lower() for x in ['placeholder', 'blank', 'loading', 'default', 'icon', 'logo']):
+    ignore_patterns = [
+        'placeholder', 'blank', 'loading', 'default', 'icon', 'logo',
+        'R0lGODlhAQABAIABAP',  # 1x1 прозрачный GIF
+        'data:image/gif;base64,R0lGOD',  # любые маленькие GIF placeholder-ы
+    ]
+    
+    if any(x in image_url for x in ignore_patterns):
         return None
     
     # Конвертируем относительные пути в абсолютные
