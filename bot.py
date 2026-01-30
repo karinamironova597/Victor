@@ -294,31 +294,49 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     title = text.split('\n')[0][:100] if text else "Новость IQ Safety"
     
-    result = await save_news(
-        source="IQ Safety",
-        title=title,
-        content=text,
-        image_url=image_url,
-        post_url=post_url
-    )
-    
-    if update.message and result:
+    # ДЛЯ КАНАЛА IQ SAFETY - БЕЗ ФИЛЬТРА!
+    # Сохраняем всё что публикуется в канале
+    if update.channel_post:
         try:
-            if image_url:
-                await context.bot.send_photo(
-                    chat_id=CHANNEL_ID,
-                    photo=image_url,
-                    caption=text
-                )
-            else:
-                await context.bot.send_message(
-                    chat_id=CHANNEL_ID,
-                    text=text
-                )
-            await update.message.reply_text("✅ Опубликовано в канале!")
+            data = {
+                "source": "IQ Safety",
+                "title": title,
+                "content": text,
+                "image_url": image_url,
+                "post_url": post_url,
+                "deleted": False
+            }
+            result = supabase.table("news").insert(data).execute()
+            logger.info(f"✅ Сохранено из канала: {title[:50]}...")
         except Exception as e:
-            logger.error(f"Ошибка публикации в канал: {e}")
-            await update.message.reply_text(f"❌ Ошибка публикации: {e}")
+            logger.error(f"❌ Ошибка сохранения: {e}")
+    else:
+        # Для личных сообщений боту - с фильтром
+        result = await save_news(
+            source="IQ Safety",
+            title=title,
+            content=text,
+            image_url=image_url,
+            post_url=post_url
+        )
+        
+        if update.message and result:
+            try:
+                if image_url:
+                    await context.bot.send_photo(
+                        chat_id=CHANNEL_ID,
+                        photo=image_url,
+                        caption=text
+                    )
+                else:
+                    await context.bot.send_message(
+                        chat_id=CHANNEL_ID,
+                        text=text
+                    )
+                await update.message.reply_text("✅ Опубликовано в канале!")
+            except Exception as e:
+                logger.error(f"Ошибка публикации в канал: {e}")
+                await update.message.reply_text(f"❌ Ошибка публикации: {e}")
 
 
 # ============ УНИВЕРСАЛЬНЫЙ ПАРСЕР ИЗОБРАЖЕНИЙ ============
