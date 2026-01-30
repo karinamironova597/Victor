@@ -303,6 +303,7 @@ def extract_image(item, base_url: str) -> Optional[str]:
     img_selectors = [
         'img',
         'picture img',
+        'picture source',
         '.image img',
         '.thumbnail img',
         '.news-image img',
@@ -314,64 +315,109 @@ def extract_image(item, base_url: str) -> Optional[str]:
     ]
     
     # Ищем по всем селекторам
-    img_el = None
+    img_elements = []
     for selector in img_selectors:
-        img_el = item.select_one(selector)
-        if img_el:
-            break
+        elements = item.select(selector)
+        img_elements.extend(elements)
     
-    if not img_el:
+    if not img_elements:
         return None
     
     # Список всех возможных атрибутов где может быть URL картинки
+    # ВАЖНО: порядок имеет значение! Сначала проверяем data-атрибуты (реальные картинки)
     img_attributes = [
-        'src',
-        'data-src',
-        'data-lazy-src',
-        'data-original',
-        'data-srcset',
-        'data-image',
-        'data-url',
-        'srcset',
+        'data-original',      # Часто используется для lazy loading
+        'data-src',           # Популярный для lazy loading
+        'data-lazy-src',      # Lazy load
+        'data-srcset',        # Responsive lazy loading
+        'data-image',         # Кастомный атрибут
+        'data-url',           # Кастомный атрибут
+        'srcset',             # Responsive images
+        'src',                # Стандартный (может быть placeholder!)
     ]
     
-    # Пробуем извлечь URL из атрибутов
-    image_url = None
-    for attr in img_attributes:
-        value = img_el.get(attr)
-        if value:
-            # Если srcset - берём первую картинку
+    best_image = None
+    best_score = 0
+    
+    # Проверяем каждый найденный img элемент
+    for img_el in img_elements:
+        # Пробуем извлечь URL из атрибутов
+        for attr in img_attributes:
+            value = img_el.get(attr)
+            if not value:
+                continue
+            
+            # Если srcset - берём первую (обычно самую большую) картинку
             if 'srcset' in attr and ' ' in value:
-                image_url = value.split(' ')[0].split(',')[0]
-            else:
-                image_url = value
-            break
+                value = value.split(',')[0].split(' ')[0].strip()
+            
+            value = value.strip()
+            
+            if not value or len(value) < 10:
+                continue
+            
+            # КРИТИЧЕСКАЯ ПРОВЕРКА: игнорируем известные placeholder-ы
+            placeholder_signatures = [
+                'R0lGODlhAQABAIABAP',          # 1x1 transparent GIF
+                'R0lGODlhAQABAIAAAA',          # 1x1 любой цвет GIF
+                'PHN2ZyB4bWxu',                 # SVG placeholder
+                'data:image/gif;base64,R0lGOD', # Короткие GIF
+                'data:image/svg+xml',           # SVG в base64
+                '//:0',                         # Пустой протокол
+                'placeholder',
+                'blank',
+                'loading',
+                'spinner',
+                'default',
+                'noimage',
+                'no-image',
+            ]
+            
+            is_placeholder = False
+            for sig in placeholder_signatures:
+                if sig in value:
+                    is_placeholder = True
+                    break
+            
+            if is_placeholder:
+                continue
+            
+            # Оцениваем качество найденного URL
+            score = 0
+            
+            # Бонусы за data-атрибуты (обычно там реальные картинки)
+            if attr.startswith('data-'):
+                score += 10
+            
+            # Бонусы за длину URL (длинные обычно реальные)
+            if len(value) > 50:
+                score += 5
+            
+            # Бонусы за расширения изображений
+            if any(ext in value.lower() for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                score += 3
+            
+            # Штрафы за подозрительные паттерны
+            if any(bad in value.lower() for bad in ['icon', 'logo', 'avatar', 'thumb']):
+                score -= 5
+            
+            # Если это лучший найденный вариант - сохраняем
+            if score > best_score:
+                best_score = score
+                best_image = value
     
-    if not image_url:
-        return None
-    
-    # Очищаем URL от лишних параметров
-    image_url = image_url.strip()
-    
-    # Игнорируем placeholder-ы и иконки
-    ignore_patterns = [
-        'placeholder', 'blank', 'loading', 'default', 'icon', 'logo',
-        'R0lGODlhAQABAIABAP',  # 1x1 прозрачный GIF
-        'data:image/gif;base64,R0lGOD',  # любые маленькие GIF placeholder-ы
-    ]
-    
-    if any(x in image_url for x in ignore_patterns):
+    if not best_image:
         return None
     
     # Конвертируем относительные пути в абсолютные
-    if image_url.startswith('//'):
-        image_url = f"https:{image_url}"
-    elif image_url.startswith('/'):
-        image_url = f"{base_url}{image_url}"
-    elif not image_url.startswith('http'):
-        image_url = f"{base_url}/{image_url}"
+    if best_image.startswith('//'):
+        best_image = f"https:{best_image}"
+    elif best_image.startswith('/'):
+        best_image = f"{base_url}{best_image}"
+    elif not best_image.startswith('http') and not best_image.startswith('data:'):
+        best_image = f"{base_url}/{best_image}"
     
-    return image_url
+    return best_image
 
 
 # ============ УНИВЕРСАЛЬНЫЙ ПАРСЕР НОВОСТЕЙ ============
