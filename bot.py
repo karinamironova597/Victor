@@ -92,6 +92,30 @@ async def save_news(source: str, title: str, content: str, image_url: str = None
         logger.info(f"⏭️  Пропущено (нет ключевых слов): {title[:50]}...")
         return None
     
+    # КРИТИЧЕСКАЯ ПРОВЕРКА: НЕ сохраняем placeholder-ы!
+    if image_url:
+        placeholder_patterns = [
+            'R0lGODlhAQABAIABAP',          # 1x1 прозрачный GIF
+            'R0lGODlhAQABAIAAAA',          # 1x1 любой цвет GIF  
+            'PHN2ZyB4bWxu',                 # SVG placeholder
+            'PHN2ZyB4bWxuc',                # SVG вариации
+            'data:image/svg+xml;base64,PHN2', # SVG base64
+            'data:image/gif;base64,R0lGOD', # Маленькие GIF
+            'placeholder',
+            'blank.gif',
+            'blank.png',
+            'loading.gif',
+            '1x1.gif',
+            '1x1.png',
+        ]
+        
+        # Если это placeholder - сохраняем NULL вместо него
+        for pattern in placeholder_patterns:
+            if pattern in image_url:
+                logger.info(f"⚠️  Обнаружен placeholder, сохраняем NULL")
+                image_url = None
+                break
+    
     try:
         data = {
             "source": source,
@@ -103,6 +127,8 @@ async def save_news(source: str, title: str, content: str, image_url: str = None
         }
         result = supabase.table("news").insert(data).execute()
         logger.info(f"✅ Сохранено: {title[:50]}...")
+        if image_url:
+            logger.info(f"📸 С картинкой: {image_url[:60]}...")
         return result
     except Exception as e:
         logger.error(f"❌ Ошибка сохранения: {e}")
