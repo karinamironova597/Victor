@@ -481,15 +481,27 @@ async def parse_generic_site(site_name: str, url: str, selectors: dict) -> int:
             if title.startswith('+'):
                 continue
             
-            # Ссылка
-            link_el = item.select_one(selectors.get('link', 'a[href]'))
-            link = link_el.get('href') if link_el else None
+            # Ссылка - сначала ищем в заголовке, потом везде
+            link = None
+            
+            # 1. Ссылка в заголовке (приоритет!)
+            if title_el and title_el.name == 'a':
+                link = title_el.get('href')
+            elif title_el:
+                title_link = title_el.find_parent('a') or title_el.find('a')
+                if title_link:
+                    link = title_link.get('href')
+            
+            # 2. Если не нашли - ищем первую ссылку в элементе
+            if not link:
+                link_el = item.select_one(selectors.get('link', 'a[href]'))
+                link = link_el.get('href') if link_el else None
             
             # Валидация ссылки
             if link:
                 if link.startswith('tel:') or link.startswith('mailto:'):
-                    continue
-                if not link.startswith('http'):
+                    link = None
+                elif not link.startswith('http'):
                     base = url.rsplit('/', 1)[0] if '/' in url else url
                     link = f"{base}{link}" if link.startswith('/') else f"{base}/{link}"
             
