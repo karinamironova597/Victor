@@ -295,6 +295,148 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(f"❌ Ошибка публикации: {e}")
 
 
+# ============ УНИВЕРСАЛЬНЫЙ ПАРСЕР ИЗОБРАЖЕНИЙ ============
+def extract_image(item, base_url: str) -> Optional[str]:
+    """Универсальный парсер изображений со всеми условиями"""
+    
+    # Список всех возможных селекторов для картинок
+    img_selectors = [
+        'img',
+        'picture img',
+        '.image img',
+        '.thumbnail img',
+        '.news-image img',
+        '.post-image img',
+        '.featured-image img',
+        '[class*="image"] img',
+        '[class*="photo"] img',
+        '[class*="pic"] img',
+    ]
+    
+    # Ищем по всем селекторам
+    img_el = None
+    for selector in img_selectors:
+        img_el = item.select_one(selector)
+        if img_el:
+            break
+    
+    if not img_el:
+        return None
+    
+    # Список всех возможных атрибутов где может быть URL картинки
+    img_attributes = [
+        'src',
+        'data-src',
+        'data-lazy-src',
+        'data-original',
+        'data-srcset',
+        'data-image',
+        'data-url',
+        'srcset',
+    ]
+    
+    # Пробуем извлечь URL из атрибутов
+    image_url = None
+    for attr in img_attributes:
+        value = img_el.get(attr)
+        if value:
+            # Если srcset - берём первую картинку
+            if 'srcset' in attr and ' ' in value:
+                image_url = value.split(' ')[0].split(',')[0]
+            else:
+                image_url = value
+            break
+    
+    if not image_url:
+        return None
+    
+    # Очищаем URL от лишних параметров
+    image_url = image_url.strip()
+    
+    # Игнорируем placeholder-ы и иконки
+    if any(x in image_url.lower() for x in ['placeholder', 'blank', 'loading', 'default', 'icon', 'logo']):
+        return None
+    
+    # Конвертируем относительные пути в абсолютные
+    if image_url.startswith('//'):
+        image_url = f"https:{image_url}"
+    elif image_url.startswith('/'):
+        image_url = f"{base_url}{image_url}"
+    elif not image_url.startswith('http'):
+        image_url = f"{base_url}/{image_url}"
+    
+    return image_url
+
+
+# ============ УНИВЕРСАЛЬНЫЙ ПАРСЕР НОВОСТЕЙ ============
+async def parse_generic_site(site_name: str, url: str, selectors: dict) -> int:
+    """
+    Универсальный парсер для любого сайта
+    
+    selectors = {
+        'items': '.news-item, article',  # CSS селектор новостей
+        'title': 'h2, h3, .title',       # CSS селектор заголовка
+        'link': 'a[href]',               # CSS селектор ссылки
+        'content': 'p, .description',    # CSS селектор контента
+    }
+    """
+    logger.info(f"🌐 Парсинг {site_name}...")
+    html = await fetch_html(url)
+    if not html:
+        return 0
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    news_items = soup.select(selectors.get('items', 'article'))[:5]
+    
+    count = 0
+    for item in news_items:
+        try:
+            # Заголовок
+            title_el = item.select_one(selectors.get('title', 'h2, h3'))
+            title = title_el.get_text(strip=True) if title_el else None
+            
+            # Валидация заголовка
+            if not title or len(title) < 15:
+                continue
+            
+            # Пропускаем телефоны
+            if title.startswith('+'):
+                continue
+            
+            # Ссылка
+            link_el = item.select_one(selectors.get('link', 'a[href]'))
+            link = link_el.get('href') if link_el else None
+            
+            # Валидация ссылки
+            if link:
+                if link.startswith('tel:') or link.startswith('mailto:'):
+                    continue
+                if not link.startswith('http'):
+                    base = url.rsplit('/', 1)[0] if '/' in url else url
+                    link = f"{base}{link}" if link.startswith('/') else f"{base}/{link}"
+            
+            # Контент
+            content_el = item.select_one(selectors.get('content', 'p, .description'))
+            content = content_el.get_text(strip=True) if content_el else title
+            
+            # Изображение (универсальный парсер)
+            base_url = '/'.join(url.split('/')[:3])  # https://example.com
+            image = extract_image(item, base_url)
+            
+            # Проверка дубликатов
+            if title and len(title) > 10:
+                existing = supabase.table("news").select("id").eq("title", title).execute()
+                if not existing.data:
+                    result = await save_news(site_name, title, content or "", image, link)
+                    if result:
+                        count += 1
+        except Exception as e:
+            logger.error(f"Ошибка парсинга {site_name}: {e}")
+    
+    logger.info(f"📊 {site_name}: добавлено {count} новостей")
+    return count
+
+
 # ============ ПАРСИНГ САЙТОВ ============
 async def fetch_html(url: str) -> Optional[str]:
     """Загружает HTML страницы"""
@@ -315,43 +457,16 @@ async def fetch_html(url: str) -> Optional[str]:
 
 async def parse_hikvision():
     """Hikvision"""
-    logger.info("🌐 Парсинг Hikvision...")
-    url = "https://www.hikvision.com/en/newsroom/latest-news/"
-    html = await fetch_html(url)
-    if not html:
-        return 0
-    
-    soup = BeautifulSoup(html, 'html.parser')
-    news_items = soup.select('.news-item, article, .content-item')[:5]
-    
-    count = 0
-    for item in news_items:
-        try:
-            title_el = item.select_one('h2, h3, .title, a')
-            title = title_el.get_text(strip=True) if title_el else None
-            
-            link_el = item.select_one('a[href]')
-            link = link_el['href'] if link_el else None
-            if link and not link.startswith('http'):
-                link = f"https://www.hikvision.com{link}"
-            
-            content_el = item.select_one('p, .description, .excerpt')
-            content = content_el.get_text(strip=True) if content_el else title
-            
-            img_el = item.select_one('img')
-            image = img_el.get('src') or img_el.get('data-src') if img_el else None
-            
-            if title and len(title) > 10:
-                existing = supabase.table("news").select("id").eq("title", title).execute()
-                if not existing.data:
-                    result = await save_news("Hikvision", title, content or "", image, link)
-                    if result:
-                        count += 1
-        except Exception as e:
-            logger.error(f"Ошибка парсинга Hikvision: {e}")
-    
-    logger.info(f"📊 Hikvision: добавлено {count} новостей")
-    return count
+    return await parse_generic_site(
+        site_name="Hikvision",
+        url="https://www.hikvision.com/en/newsroom/latest-news/",
+        selectors={
+            'items': 'article, .news-item, .content-item, [class*="card"]',
+            'title': 'h2, h3, h4, .title, a',
+            'link': 'a[href]',
+            'content': 'p, .description, .excerpt, .summary',
+        }
+    )
 
 
 async def parse_bolid():
@@ -504,8 +619,24 @@ async def parse_axis():
             content_el = item.select_one('p, .description')
             content = content_el.get_text(strip=True) if content_el else title
             
-            img_el = item.select_one('img')
-            image = img_el.get('src') if img_el else None
+            # Ищем картинку в picture > source или img
+            image = None
+            picture_el = item.select_one('picture source[srcset]')
+            if picture_el:
+                srcset = picture_el.get('srcset', '')
+                # Берём первый URL из srcset
+                if srcset:
+                    image = srcset.split(',')[0].split(' ')[0].strip()
+                    if image and not image.startswith('http'):
+                        image = f"https://newsroom.axis.com{image}"
+            
+            # Если не нашли в picture, ищем обычный img
+            if not image:
+                img_el = item.select_one('img')
+                if img_el:
+                    image = img_el.get('src') or img_el.get('data-src')
+                    if image and not image.startswith('http'):
+                        image = f"https://newsroom.axis.com{image}"
             
             if title and len(title) > 10:
                 existing = supabase.table("news").select("id").eq("title", title).execute()
