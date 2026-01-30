@@ -619,6 +619,9 @@ async def parse_hikvision():
                     link = f"https://www.hikvision.com{link}"
                 elif not link.startswith('http'):
                     link = f"https://www.hikvision.com/en/newsroom/{link}"
+            else:
+                # Если ссылку не нашли - используем общую страницу новостей
+                link = "https://www.hikvision.com/en/newsroom/latest-news/"
             
             # Контент
             content_el = (
