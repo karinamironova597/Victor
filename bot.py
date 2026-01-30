@@ -546,17 +546,103 @@ async def fetch_html(url: str) -> Optional[str]:
 # ============ ЗАРУБЕЖНЫЕ САЙТЫ ============
 
 async def parse_hikvision():
-    """Hikvision"""
-    return await parse_generic_site(
-        site_name="Hikvision",
-        url="https://www.hikvision.com/en/newsroom/latest-news/",
-        selectors={
-            'items': 'article, .news-item, .content-item, [class*="card"]',
-            'title': 'h2, h3, h4, .title, a',
-            'link': 'a[href]',
-            'content': 'p, .description, .excerpt, .summary',
-        }
-    )
+    """Hikvision - специальный парсер"""
+    logger.info("🌐 Парсинг Hikvision...")
+    url = "https://www.hikvision.com/en/newsroom/latest-news/"
+    html = await fetch_html(url)
+    if not html:
+        return 0
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    # Hikvision использует разные структуры - пробуем все варианты
+    news_items = (
+        soup.select('article') or 
+        soup.select('.news-item') or 
+        soup.select('.content-item') or
+        soup.select('[class*="card"]') or
+        soup.select('.latest-news-item')
+    )[:5]
+    
+    count = 0
+    for item in news_items:
+        try:
+            # Ищем заголовок
+            title_el = (
+                item.select_one('h2 a') or 
+                item.select_one('h3 a') or 
+                item.select_one('.title a') or
+                item.select_one('a h2') or
+                item.select_one('a h3') or
+                item.select_one('h2') or
+                item.select_one('h3')
+            )
+            
+            if not title_el:
+                continue
+            
+            title = title_el.get_text(strip=True)
+            
+            if not title or len(title) < 15:
+                continue
+            
+            # Ищем ссылку - проверяем несколько вариантов
+            link = None
+            
+            # Вариант 1: Ссылка в самом заголовке
+            if title_el.name == 'a':
+                link = title_el.get('href')
+            
+            # Вариант 2: Родитель заголовка - ссылка
+            if not link and title_el.parent and title_el.parent.name == 'a':
+                link = title_el.parent.get('href')
+            
+            # Вариант 3: Ссылка внутри заголовка
+            if not link:
+                inner_link = title_el.find('a')
+                if inner_link:
+                    link = inner_link.get('href')
+            
+            # Вариант 4: Первая ссылка в элементе новости
+            if not link:
+                first_link = item.select_one('a[href]')
+                if first_link:
+                    link = first_link.get('href')
+            
+            # Вариант 5: Ссылка в атрибуте data-url или data-link
+            if not link:
+                link = item.get('data-url') or item.get('data-link')
+            
+            # Делаем абсолютную ссылку
+            if link:
+                if link.startswith('/'):
+                    link = f"https://www.hikvision.com{link}"
+                elif not link.startswith('http'):
+                    link = f"https://www.hikvision.com/en/newsroom/{link}"
+            
+            # Контент
+            content_el = (
+                item.select_one('p') or 
+                item.select_one('.description') or
+                item.select_one('.excerpt')
+            )
+            content = content_el.get_text(strip=True) if content_el else title
+            
+            # Изображение
+            image = extract_image(item, 'https://www.hikvision.com')
+            
+            # Сохраняем
+            if title:
+                existing = supabase.table("news").select("id").eq("title", title).execute()
+                if not existing.data:
+                    result = await save_news("Hikvision", title, content, image, link)
+                    if result:
+                        count += 1
+        except Exception as e:
+            logger.error(f"Ошибка парсинга Hikvision: {e}")
+    
+    logger.info(f"📊 Hikvision: добавлено {count} новостей")
+    return count
 
 
 async def parse_bolid():
