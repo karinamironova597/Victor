@@ -1280,6 +1280,22 @@ async def parse_inform_kz():
 # URL: https://tg.i-c-a.su/json/CHANNEL_NAME?limit=20
 # Лимит сервиса: 15 запросов в минуту суммарно
 
+def strip_html(text: str) -> str:
+    """Убирает HTML теги и декодирует HTML сущности"""
+    if not text:
+        return ""
+    # Убираем tg-emoji тэги целиком
+    text = re.sub(r'<tg-emoji[^>]*>.*?</tg-emoji>', '', text)
+    # Убираем все остальные HTML теги
+    text = re.sub(r'<[^>]+>', ' ', text)
+    # Декодируем HTML сущности
+    import html
+    text = html.unescape(text)
+    # Убираем лишние пробелы и переносы
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+
 TELEGRAM_CHANNELS = [
     {"username": "habr_com",      "source": "Habr"},
     {"username": "habr_com_news", "source": "Habr News"},
@@ -1316,9 +1332,6 @@ async def parse_telegram_channel(channel: dict) -> int:
 
     posts = await fetch_json(api_url)
     
-    # DEBUG: логируем что реально пришло
-    logger.info(f"🔍 @{username} raw: type={type(posts).__name__}, value={str(posts)[:300]}")
-    
     # Если пришёл словарь — может быть обёрнут в ключ
     if isinstance(posts, dict):
         # Попробуем вытащить список из типичных ключей
@@ -1342,12 +1355,13 @@ async def parse_telegram_channel(channel: dict) -> int:
     count = 0
     for post in posts[:15]:
         try:
-            # Текст поста
-            text = post.get("text") or post.get("message") or ""
+            # Текст поста — убираем HTML
+            raw_text = post.get("text") or post.get("message") or ""
+            text = strip_html(raw_text)
             if not text or len(text) < 15:
                 continue
 
-            # Заголовок = первая строка
+            # Заголовок = первая строка (уже без HTML)
             title = text.split("\n")[0].strip()[:100]
             if not title or len(title) < 10:
                 title = text[:100]
