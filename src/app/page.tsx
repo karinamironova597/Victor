@@ -12,7 +12,7 @@ import { Footer } from "@/components/site/Footer";
 export default function Home() {
   return (
     <div>
-      |
+
       <Navbar />
       <Hero />
       <Services />
