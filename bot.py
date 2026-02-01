@@ -28,90 +28,164 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ============ КЛЮЧЕВЫЕ СЛОВА ДЛЯ ФИЛЬТРАЦИИ ============
 KEYWORDS = [
-    # Видеонаблюдение
-    r'видеонаблюден', r'камер', r'cctv', r'ip-камер', r'видеорегистратор',
-    r'nvr', r'dvr', r'видеоаналитик', r'трекинг',
-    r'video surveillance', r'video analytics', r'ip camera', r'dome camera',
-    r'bullet camera', r'PTZ', r'объектив', r'матрица',
-    r'4K', r'тепловизор', r'инфракрасн',
-    r'night vision', r'ночное видение', r'детектор', r'детекци',
+    # === ВИДЕОНАБЛЮДЕНИЕ ===
+    r'видеонаблюден',
+    r'\bкамер[аеуы]?\b',
+    r'\bcctv\b',
+    r'ip[- ]камер',
+    r'видеорегистратор',
+    r'\bnvr\b',
+    r'\bdvr\b',
+    r'видеоаналитик',
+    r'video surveillance',
+    r'video analytics',
+    r'ip camera',
+    r'dome camera',
+    r'bullet camera',
+    r'\bPTZ\b',
+    r'тепловизор',
+    r'инфракрасн',
+    r'night vision',
+    r'ночное видение',
+    r'4k камер',
+    r'видеопоток',
+    r'surveillance camera',
 
-    # СКУД
-    r'скуд', r'контроль доступ', r'турникет', r'шлагбаум', r'домофон',
-    r'видеодомофон', r'считыватель', r'карт-ридер', r'электрозамок',
-    r'access control', r'электромагнитн', r'электромехани',
-    r'RFID', r'wiegand', r'подъёмн', r'калитк',
-    r'barrier', r'turnstile', r'intercom',
+    # === СКУД ===
+    r'\bскуд\b',
+    r'контроль доступ',
+    r'турникет',
+    r'шлагбаум',
+    r'домофон',
+    r'видеодомофон',
+    r'считыватель',
+    r'электрозамок',
+    r'access control system',
+    r'электромагнитн',
+    r'электромехани',
+    r'\bRFID\b',
+    r'\bwiegand\b',
+    r'\bturnstile\b',
+    r'\bintercom\b',
+    r'карт[- ]ридер',
 
-    # Пожарная безопасность
-    r'пожарн', r'огнетушател', r'датчик дым', r'пожаротушен',
-    r'спринклер', r'опс', r'аупт', r'пожарная сигнализац',
-    r'fire', r'flame', r'smoke', r'пожар', r'огонь',
-    r'fire alarm', r'fire detection', r'пожарный извещат',
-    r'аэрозольн', r'газовое тушен',
+    # === ПОЖАРНАЯ БЕЗОПАСНОСТЬ ===
+    r'пожарн',
+    r'огнетушател',
+    r'датчик дым',
+    r'пожаротушен',
+    r'спринклер',
+    r'\bопс\b',
+    r'\bаупт\b',
+    r'пожарная сигнализац',
+    r'fire alarm',
+    r'fire detection',
+    r'fire suppression',
+    r'smoke detect',
+    r'flame detect',
+    r'пожарный извещат',
+    r'аэрозольн.*тушен',
+    r'газовое тушен',
 
-    # Охранная сигнализация
-    r'сигнализац', r'охран', r'датчик движен', r'датчик разбит',
-    r'периметр', r'ограждение', r'тревожн',
-    r'alarm', r'intrusion', r'motion sensor', r'PIR',
-    r'охранн', r'аппаратур', r'прибор приёма', r'приёмно-контрольн',
-    r'GSM сигнализац', r'облачная сигнализац',
+    # === ОХРАННАЯ СИГНАЛИЗАЦИЯ ===
+    r'сигнализац',
+    r'датчик движен',
+    r'датчик разбит',
+    r'периметр.*охран',
+    r'тревожн',
+    r'\bPIR\b',
+    r'приёмно[- ]контрольн',
+    r'прибор приёма',
+    r'охранная сигнализац',
+    r'intrusion detection system',
+    r'motion sensor',
 
-    # Биометрия
-    r'биометр', r'распознавание лиц', r'отпечаток', r'сканер лиц',
-    r'face recognition', r'идентификац', r'аутентификац',
-    r'fingerprint', r'iris', r'facial', r'face detection',
-    r'распознан', r'верификац',
+    # === БИОМЕТРИЯ ===
+    r'биометр',
+    r'распознавание лиц',
+    r'face recognition',
+    r'face detection',
+    r'\bfacial\b.*recogni',
+    r'отпечаток пальц',
+    r'\bfingerprint\b.*sensor',
+    r'сканер лиц',
+    r'идентификац.*лиц',
+    r'верификац.*биометр',
 
-    # Бренды мировые
-    r'hikvision', r'dahua', r'axis', r'bosch', r'siemens', r'hanwha',
-    r'honeywell', r'hochiki', r'schneider electric', r'panasonic',
-    r'milestone', r'genetec', r'arecont',
-    r'uniview', r'samsung', r'tyco', r'pelco',
-    r'assa abloy', r'lenel', r'dormakaba', r'hid global',
-    r'ajax', r'DSC', r'optex',
+    # === БРЕНДЫ ЗАРУБЕЖНЫЕ ===
+    r'\bhikvision\b',
+    r'\bdahua\b',
+    r'\baxis\b.*(?:camera|security|communicat|video)',
+    r'\bbosch\b.*(?:security|safety|protect|alarm)',
+    r'\bsiemens\b.*(?:security|safety|protect|building)',
+    r'\bhanwha\b',
+    r'\bhoneywell\b.*(?:security|safety|fire|alarm)',
+    r'\bhochiki\b',
+    r'\bschneider\b.*(?:security|electric)',
+    r'\bmilestone\b.*(?:video|security|vms)',
+    r'\bgenetec\b',
+    r'\barecont\b',
+    r'\buniview\b',
+    r'\btyco\b',
+    r'\bpelco\b',
+    r'\bassa abloy\b',
+    r'\bdormakaba\b',
+    r'\bhid global\b',
+    r'\boptex\b',
 
-    # Бренды российские/СНГ
-    r'болид', r'рубеж', r'perco', r'parsec', r'орион', r'itv', r'сигма',
-    r'smartec', r'beward', r'dssl', r'fort', r'tantos',
-    r'rgsec', r'optimus', r'intellect',
-    r'orion m2m', r'iqsafety', r'iq safety',
+    # === БРЕНДЫ РУС/СНГ ===
+    r'\bболид\b',
+    r'\bрубеж\b',
+    r'\bperco\b',
+    r'\bперко\b',
+    r'\bparsec\b',
+    r'\bsmartec\b',
+    r'\bbeward\b',
+    r'\bdssl\b',
+    r'\borion m2m\b',
+    r'\biqsafety\b',
+    r'\biq safety\b',
+    r'\brgsec\b',
 
-    # Общие термины безопасности
-    r'безопасност', r'охрана', r'security', r'система безопасност',
-    r'комплекс безопасност', r'интеграция систем',
-    r'инсталляц', r'монтаж', r'наблюден', r'защит',
-    r'cyber', r'кибербезопасност', r'вторжен',
-    r'surveillance', r'protection', r'safeguard',
+    # === СИСТЕМЫ БЕЗОПАСНОСТИ ===
+    r'система безопасност',
+    r'комплекс безопасност',
+    r'система охран',
+    r'система защит',
+    r'интеграция систем безопасност',
+    r'монтаж.*(?:камер|сигнализац|скуд)',
+    r'инсталляц.*(?:камер|сигнализац|скуд)',
 
-    # Умные технологии
-    r'умный дом', r'smart home', r'iot', r'интернет вещей',
-    r'автоматизация', r'интеллектуальн',
-    r'smart city', r'умный город',
-    r'home automation', r'building automation',
-    r'VMS', r'video management',
+    # === VMS И ВИДЕОМЕНЕДЖМЕНТ ===
+    r'\bVMS\b',
+    r'video management',
+    r'система видеонаблюдения',
 
-    # Сети и инфраструктура
-    r'ip-систем', r'сетев', r'ethernet', r'poe', r'wi-fi камер',
-    r'облачн', r'cloud', r'server', r'сервер',
-    r'коммутатор', r'маршрутизатор',
-    r'интеграци',
+    # === ИНФРАСТРУКТУРА БЕЗОПАСНОСТИ ===
+    r'\bPoE\b.*(?:камер|switch|security)',
+    r'ip[- ]систем.*безопасност',
 
-    # Тендеры и рынок
-    r'тендер', r'закупк', r'аукцион', r'госзакупк',
-    r'рынок безопасност', r'отрасл',
+    # === ТЕНДЕРЫ И РЫНОК ===
+    r'тендер.*безопасност',
+    r'закупк.*безопасност',
+    r'рынок безопасност',
+    r'тендер.*(?:скуд|сигнализац|видеонаблюдения|охран)',
 
-    # События и выставки
-    r'выставк', r'форум', r'конференц',
-    r'expo', r'exhibition',
+    # === ВЫСТАВКИ ===
+    r'выставк.*безопасност',
+    r'\bexpo\b.*(?:security|safety)',
+    r'форум.*безопасност',
 
-    # Нормативы и сертификаты
-    r'ГОСТ', r'сертификат', r'лицензия', r'аккредитац',
-    r'ISO', r'IEC', r'compliance', r'стандарт',
+    # === НОРМАТИВЫ ===
+    r'\bГОСТ\b.*(?:безопасност|охран|пожар|сигнализац)',
+    r'сертификат.*безопасност',
+    r'лицензия.*безопасност',
 
-    # Инциденты безопасности
-    r'инцидент', r'утечка', r'взлом', r'уязвимост',
-    r'breach', r'vulnerability', r'exploit', r'patch',
+    # === ИНЦИДЕНТЫ ===
+    r'утечка.*данных.*камер',
+    r'взлом.*камер',
+    r'уязвимост.*камер',
+    r'уязвимост.*(?:скуд|сигнализац)',
 ]
 
 def check_keywords(text: str) -> bool:
@@ -122,7 +196,7 @@ def check_keywords(text: str) -> bool:
     text_lower = text.lower()
     
     for keyword in KEYWORDS:
-        if re.search(keyword, text_lower):
+        if re.search(keyword, text_lower, re.IGNORECASE):
             return True
     
     return False
@@ -310,7 +384,7 @@ async def sources_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 📋 Всего: 21 источник
 🔄 Обновление: каждые 2 часа
-🔍 Фильтрация: 120 ключевых слов"""
+🔍 Фильтрация по ключевым словам безопасности"""
     
     await update.message.reply_text(message)
 
@@ -1276,22 +1350,15 @@ async def parse_inform_kz():
 
 
 # ============ ПАРСИНГ TELEGRAM КАНАЛОВ (через tg.i-c-a.su JSON API) ============
-# tg.i-c-a.su возвращает посты любого публичного канала как JSON
-# URL: https://tg.i-c-a.su/json/CHANNEL_NAME?limit=20
-# Лимит сервиса: 15 запросов в минуту суммарно
 
 def strip_html(text: str) -> str:
     """Убирает HTML теги и декодирует HTML сущности"""
     if not text:
         return ""
-    # Убираем tg-emoji тэги целиком
     text = re.sub(r'<tg-emoji[^>]*>.*?</tg-emoji>', '', text)
-    # Убираем все остальные HTML теги
     text = re.sub(r'<[^>]+>', ' ', text)
-    # Декодируем HTML сущности
     import html
     text = html.unescape(text)
-    # Убираем лишние пробелы и переносы
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
@@ -1332,16 +1399,13 @@ async def parse_telegram_channel(channel: dict) -> int:
 
     posts = await fetch_json(api_url)
     
-    # Если пришёл словарь — может быть обёрнут в ключ
     if isinstance(posts, dict):
-        # Попробуем вытащить список из типичных ключей
         for key in ["posts", "messages", "data", "items", "results", "channel_posts"]:
             if key in posts and isinstance(posts[key], list):
                 posts = posts[key]
                 logger.info(f"✅ @{username}: нашли список в ключе '{key}', {len(posts)} items")
                 break
         else:
-            # Если это один пост как словарь — оборачиваем в список
             if "text" in posts or "message" in posts:
                 posts = [posts]
             else:
@@ -1355,22 +1419,18 @@ async def parse_telegram_channel(channel: dict) -> int:
     count = 0
     for post in posts[:15]:
         try:
-            # Текст поста — убираем HTML
             raw_text = post.get("text") or post.get("message") or ""
             text = strip_html(raw_text)
             if not text or len(text) < 15:
                 continue
 
-            # Заголовок = первая строка (уже без HTML)
             title = text.split("\n")[0].strip()[:100]
             if not title or len(title) < 10:
                 title = text[:100]
 
-            # Ссылка на пост
             post_id = post.get("id") or post.get("post_id") or ""
             post_url = f"https://t.me/{username}/{post_id}" if post_id else f"https://t.me/{username}"
 
-            # Изображение — tg.i-c-a.su даёт media как объект или строку
             image_url = None
             media = post.get("media")
             if media:
@@ -1379,12 +1439,10 @@ async def parse_telegram_channel(channel: dict) -> int:
                 elif isinstance(media, dict):
                     image_url = media.get("url") or media.get("src") or media.get("file_url")
 
-            # Дубликат?
             existing = supabase.table("news").select("id").eq("title", title).execute()
             if existing.data:
                 continue
 
-            # Сохраняем через save_news (с фильтром ключевых слов!)
             result = await save_news(source, title, text, image_url, post_url)
             if result:
                 count += 1
@@ -1401,7 +1459,6 @@ async def parse_all_telegram_channels() -> int:
     total = 0
     for i, channel in enumerate(TELEGRAM_CHANNELS):
         total += await parse_telegram_channel(channel)
-        # Задержка 5 сек между каналами чтобы не попасть под rate limit
         if i < len(TELEGRAM_CHANNELS) - 1:
             await asyncio.sleep(5)
     return total
@@ -1472,7 +1529,7 @@ def main():
     
     logger.info("🚀 Бот запущен!")
     logger.info("🌐 Парсинг 21 источника новостей о безопасности")
-    logger.info("🔍 Фильтрация по 120 ключевым словам")
+    logger.info("🔍 Точная фильтрация по ключевым словам физической безопасности")
     logger.info("📋 Первый парсинг через 10 секунд, затем каждые 2 часа")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
