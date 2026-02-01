@@ -15,6 +15,7 @@ SUPABASE_URL = "https://dqpqhvaikapnnmablvxh.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxcHFodmFpa2Fwbm5tYWJsdnhoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTQ5MzE3MywiZXhwIjoyMDg1MDY5MTczfQ.bNsJE5orouvDoCHa4q9p0FwbaMDgsLuhXSIGmN9h7Qc"
 CHANNEL_ID = "@iqsafety_news"
 
+
 # Логирование
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -332,14 +333,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file = await context.bot.get_file(photo.file_id)
         image_url = file.file_path
     
-    post_url = None
-    if update.channel_post:
-        post_url = f"https://t.me/{CHANNEL_ID.replace('@', '')}/{message.message_id}"
-    
     title = text.split('\n')[0][:100] if text else "Новость IQ Safety"
     
     # ДЛЯ КАНАЛА IQ SAFETY - БЕЗ ФИЛЬТРА!
     if update.channel_post:
+        post_url = f"https://t.me/{CHANNEL_ID.replace('@', '')}/{message.message_id}"
         try:
             data = {
                 "source": "IQ Safety",
@@ -349,7 +347,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "post_url": post_url,
                 "deleted": False
             }
-            result = supabase.table("news").insert(data).execute()
+            supabase.table("news").insert(data).execute()
             logger.info(f"✅ Сохранено из канала: {title[:50]}...")
         except Exception as e:
             logger.error(f"❌ Ошибка сохранения из канала: {e}")
@@ -360,7 +358,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             title=title,
             content=text,
             image_url=image_url,
-            post_url=post_url
+            post_url=None
         )
         
         if update.message and result:
@@ -1276,6 +1274,105 @@ async def parse_inform_kz():
     return count
 
 
+
+# ============ ПАРСИНГ TELEGRAM КАНАЛОВ (через tg.i-c-a.su JSON API) ============
+# tg.i-c-a.su возвращает посты любого публичного канала как JSON
+# URL: https://tg.i-c-a.su/json/CHANNEL_NAME?limit=20
+# Лимит сервиса: 15 запросов в минуту суммарно
+
+TELEGRAM_CHANNELS = [
+    {"username": "habr_com",      "source": "Habr"},
+    {"username": "habr_com_news", "source": "Habr News"},
+    {"username": "perco_com",     "source": "Perco"},
+    {"username": "rmc_rubezh",    "source": "Рубеж"},
+]
+
+
+async def fetch_json(url: str) -> Optional[list]:
+    """Загружает JSON с внешнего API"""
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=30, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json(content_type=None)
+                    return data
+                else:
+                    logger.warning(f"⚠️  fetch_json {url} -> status {response.status}")
+    except Exception as e:
+        logger.error(f"❌ Ошибка fetch_json {url}: {e}")
+    return None
+
+
+async def parse_telegram_channel(channel: dict) -> int:
+    """Парсит публичный Telegram канал через tg.i-c-a.su JSON API"""
+    username = channel["username"]
+    source = channel["source"]
+    api_url = f"https://tg.i-c-a.su/json/{username}?limit=20"
+
+    logger.info(f"📨 Парсинг Telegram @{username} (via tg.i-c-a.su)...")
+
+    posts = await fetch_json(api_url)
+    if not posts or not isinstance(posts, list):
+        logger.info(f"📊 @{username}: нет данных или пустой ответ")
+        return 0
+
+    count = 0
+    for post in posts[:15]:
+        try:
+            # Текст поста
+            text = post.get("text") or post.get("message") or ""
+            if not text or len(text) < 15:
+                continue
+
+            # Заголовок = первая строка
+            title = text.split("\n")[0].strip()[:100]
+            if not title or len(title) < 10:
+                title = text[:100]
+
+            # Ссылка на пост
+            post_id = post.get("id") or post.get("post_id") or ""
+            post_url = f"https://t.me/{username}/{post_id}" if post_id else f"https://t.me/{username}"
+
+            # Изображение — tg.i-c-a.su даёт media как объект или строку
+            image_url = None
+            media = post.get("media")
+            if media:
+                if isinstance(media, str) and media.startswith("http"):
+                    image_url = media
+                elif isinstance(media, dict):
+                    image_url = media.get("url") or media.get("src") or media.get("file_url")
+
+            # Дубликат?
+            existing = supabase.table("news").select("id").eq("title", title).execute()
+            if existing.data:
+                continue
+
+            # Сохраняем через save_news (с фильтром ключевых слов!)
+            result = await save_news(source, title, text, image_url, post_url)
+            if result:
+                count += 1
+
+        except Exception as e:
+            logger.error(f"Ошибка парсинга поста @{username}: {e}")
+
+    logger.info(f"📊 @{username}: добавлено {count} новостей")
+    return count
+
+
+async def parse_all_telegram_channels() -> int:
+    """Парсит все сторонние Telegram каналы с задержкой между запросами"""
+    total = 0
+    for i, channel in enumerate(TELEGRAM_CHANNELS):
+        total += await parse_telegram_channel(channel)
+        # Задержка 5 сек между каналами чтобы не попасть под rate limit
+        if i < len(TELEGRAM_CHANNELS) - 1:
+            await asyncio.sleep(5)
+    return total
+
+
 # ============ ГЛАВНАЯ ФУНКЦИЯ ПАРСИНГА ============
 
 async def parse_all_sites():
@@ -1306,6 +1403,9 @@ async def parse_all_sites():
     total_count += await parse_orion_m2m()
     total_count += await parse_intant()
     total_count += await parse_inform_kz()
+    
+    # Telegram каналы
+    total_count += await parse_all_telegram_channels()
     
     logger.info(f"✅ Парсинг всех сайтов завершён! Добавлено {total_count} новостей")
 
