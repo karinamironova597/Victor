@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { JsonLd } from "@/components/seo/JsonLd";
+import FloatingNewsWidget from "@/components/FloatingNewsWidget";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -105,7 +106,8 @@ export default function RootLayout({
         />
 
         {children}
-      </body>
+      <FloatingNewsWidget />
+</body>
     </html>
   );
 }
