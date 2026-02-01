@@ -1315,8 +1315,28 @@ async def parse_telegram_channel(channel: dict) -> int:
     logger.info(f"📨 Парсинг Telegram @{username} (via tg.i-c-a.su)...")
 
     posts = await fetch_json(api_url)
+    
+    # DEBUG: логируем что реально пришло
+    logger.info(f"🔍 @{username} raw: type={type(posts).__name__}, value={str(posts)[:300]}")
+    
+    # Если пришёл словарь — может быть обёрнут в ключ
+    if isinstance(posts, dict):
+        # Попробуем вытащить список из типичных ключей
+        for key in ["posts", "messages", "data", "items", "results", "channel_posts"]:
+            if key in posts and isinstance(posts[key], list):
+                posts = posts[key]
+                logger.info(f"✅ @{username}: нашли список в ключе '{key}', {len(posts)} items")
+                break
+        else:
+            # Если это один пост как словарь — оборачиваем в список
+            if "text" in posts or "message" in posts:
+                posts = [posts]
+            else:
+                logger.info(f"📊 @{username}: словарь без известных ключей")
+                return 0
+    
     if not posts or not isinstance(posts, list):
-        logger.info(f"📊 @{username}: нет данных или пустой ответ")
+        logger.info(f"📊 @{username}: нет данных после обработки")
         return 0
 
     count = 0
