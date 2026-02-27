@@ -103,7 +103,7 @@ export default function RootLayout({
             openingHours: ["Mo-Fr 09:00-18:00"],
             sameAs: ["https://wa.me/77029459444"],
             description: "Профессиональный монтаж систем безопасности: видеонаблюдение, СКУД, пожарная и охранная сигнализация",
-            priceRange: "$$",
+            priceRange: "10000-500000",
           }}
         />
 
