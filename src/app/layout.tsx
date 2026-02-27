@@ -25,6 +25,9 @@ export const metadata: Metadata = {
 
   verification: {
     google: 'TYLO_sLc0DQ0v5DE6mpinWKV_8FH5luMv4JiByr_09w',
+     other: {
+    'ahrefs-site-verification': 'ваш_код_из_ahrefs', // <-- вставьте код
+  },
   },  
 
   description:
