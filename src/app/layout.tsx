@@ -25,9 +25,6 @@ export const metadata: Metadata = {
 
   verification: {
     google: 'TYLO_sLc0DQ0v5DE6mpinWKV_8FH5luMv4JiByr_09w',
-     other: {
-    'ahrefs-site-verification': '3385d07fcbf632f17ad1b156002c1497a6d99f4b396e3db0b3536eefb7f55fa2"', // <-- вставьте код
-  },
   },  
 
   description:
@@ -85,6 +82,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ru">
+      <head>
+        {/* Ahrefs Verification */}
+        <meta name="ahrefs-site-verification" content="3385d07fcbf632f17ad1b156002c1497a6d99f4b396e3db0b3536eefb7f55fa2" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* JSON-LD (структурированные данные для SEO) */}
         <JsonLd
