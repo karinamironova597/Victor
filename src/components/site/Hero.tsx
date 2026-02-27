@@ -34,9 +34,9 @@ export function Hero() {
       <div className="relative mx-auto max-w-6xl px-4">
         {/* Центр */}
         <div className="flex min-h-[780px] md:min-h-[820px] flex-col items-center justify-center text-center">
-          <h1 className="max-w-4xl text-3xl font-semibold leading-[1.08] tracking-tight text-white md:text-5xl">
+          <h2 className="max-w-4xl text-3xl font-semibold leading-[1.08] tracking-tight text-white md:text-5xl">
             Надежные системы безопасности с гарантированной работой
-          </h1>
+          </h2>
 
           <div className="mt-6 text-white/80">от компании ТОО «ПромКвалБиОТ»</div>
 
