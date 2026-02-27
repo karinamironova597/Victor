@@ -19,27 +19,27 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://iqsafety.kz"),
 
   title: {
-    default: "PromKvalBIOT — системы безопасности под ключ",
-    template: "%s | PromKvalBIOT",
+    default: "IQ Safety — системы безопасности под ключ",
+    template: "%s | IQ Safety",
   },
 
   verification: {
-    google: 'TYLO_sLc0DQ0v5DE6mpinWKV_8FH5luMv4JiByr_09w', // Add your unique code here
+    google: 'TYLO_sLc0DQ0v5DE6mpinWKV_8FH5luMv4JiByr_09w',
   },  
 
   description:
-    "Проектирование, монтаж и обслуживание систем безопасности: видеонаблюдение, СКУД, пожарная сигнализация. Работаем по Алматы и Казахстану.",
+    "Проектирование, монтаж и обслуживание систем безопасности: видеонаблюдение, СКУД, пожарная и охранная сигнализация. Работаем с бизнесом и частными клиентами по Алматы и Казахстану.",
 
   alternates: {
     canonical: "https://iqsafety.kz",
   },
 
   openGraph: {
-    title: "PromKvalBIOT — системы безопасности под ключ",
+    title: "IQ Safety — системы безопасности под ключ",
     description:
-      "Надежные системы безопасности для бизнеса и объектов любой сложности. Проектирование, монтаж, обслуживание.",
+      "Надежные системы безопасности для бизнеса и частных объектов любой сложности. Проектирование, монтаж, обслуживание.",
     url: "https://iqsafety.kz",
-    siteName: "PromKvalBIOT",
+    siteName: "IQ Safety",
     type: "website",
     locale: "ru_RU",
     images: [
@@ -47,14 +47,14 @@ export const metadata: Metadata = {
         url: "/og.jpg",
         width: 1200,
         height: 630,
-        alt: "PromKvalBIOT — системы безопасности",
+        alt: "IQ Safety — системы безопасности",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "PromKvalBIOT — системы безопасности под ключ",
+    title: "IQ Safety — системы безопасности под ключ",
     description:
       "Проектирование, монтаж и обслуживание систем безопасности. Консультация и выезд специалиста.",
     images: ["/og.jpg"],
@@ -89,7 +89,7 @@ export default function RootLayout({
           data={{
             "@context": "https://schema.org",
             "@type": "LocalBusiness",
-            name: "PromKvalBIOT",
+            name: "IQ Safety",
             url: "https://iqsafety.kz",
             telephone: "+77029459444",
             email: "info-iqs@yandex.kz",
@@ -102,12 +102,14 @@ export default function RootLayout({
             areaServed: ["Алматы", "Казахстан"],
             openingHours: ["Mo-Fr 09:00-18:00"],
             sameAs: ["https://wa.me/77029459444"],
+            description: "Профессиональный монтаж систем безопасности: видеонаблюдение, СКУД, пожарная и охранная сигнализация",
+            priceRange: "$$",
           }}
         />
 
         {children}
-      <FloatingNewsWidget />
-</body>
+        <FloatingNewsWidget />
+      </body>
     </html>
   );
 }
