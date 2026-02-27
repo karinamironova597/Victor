@@ -1,15 +1,11 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://iqsafety.kz"; // поменяй если домен еще не готов
+  const baseUrl = "https://iqsafety.kz";
 
   const routes = [
-    "",
-    "/services",
-    "/projects",
-    "/equipment",
-    "/about",
-    "/contacts",
+    "",              // главная страница
+    "/recognition",  // страница распознавания (если она доступна пользователям)
   ];
 
   return routes.map((path) => ({
