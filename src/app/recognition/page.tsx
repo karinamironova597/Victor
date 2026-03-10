@@ -3,7 +3,7 @@ import { Footer } from "@/components/site/Footer";
 import { RecognitionHero } from "@/components/site/recognition/RecognitionHero";
 import { RecognitionAbout } from "@/components/site/recognition/RecognitionAbout";
 import { RecognitionStats } from "@/components/site/recognition/RecognitionStats"; 
-import { RecognitionServices } from "@/components/site/recognition/RecognitionServices";
+
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -29,7 +29,6 @@ export default function RecognitionPage() {
       <RecognitionHero />
       <RecognitionAbout />
       <RecognitionStats />
-      <RecognitionServices />
       <Footer />
     </div>
   );

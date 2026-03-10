@@ -33,20 +33,12 @@ export function ValidationHero() {
           <p className="text-lg md:text-xl opacity-90 leading-relaxed mb-8">
             Независимая оценка квалификаций специалистов по безопасности и охране труда в соответствии с профессиональным стандартом Республики Казахстан
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            
-            <a  href="#content"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#F4B41A] text-gray-900 rounded-lg font-semibold hover:bg-[#E5A510] transition-colors text-lg"
-            >
-              Узнать подробнее
-            </a>
-            
-            <a  href="#contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 text-white rounded-lg font-semibold hover:bg-white/20 transition-colors text-lg backdrop-blur-sm"
-            >
-              Связаться с нами
-            </a>
-          </div>
+          <a
+            href="/validation"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#F4B41A] text-gray-900 rounded-xl font-bold hover:bg-[#d9a017] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg text-lg"
+          >
+            Пройти валидацию <span className="text-xl">&#8594;</span>
+          </a>
         </div>
       </div>
     </section>
