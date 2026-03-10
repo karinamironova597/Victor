@@ -143,13 +143,16 @@ export function Navbar() {
               <nav className="hidden items-center gap-1 md:flex">
                 {items.map((it) => {
                   const isActive = active === it.href;
+                  const isRecognition = it.href === "/recognition";
                   return (
                     <button
                       key={it.href}
                       onClick={() => go(it.href)}
                       className={[
-                        "rounded-full px-3 py-2 text-sm transition",
-                        isActive
+                        "rounded-full px-3 py-2 text-sm font-medium transition",
+                        isRecognition
+                          ? "bg-amber-400 text-black hover:bg-amber-300"
+                          : isActive
                           ? "bg-neutral-900 text-white"
                           : scrolled
                           ? "text-neutral-800 hover:bg-neutral-900/5"
@@ -201,13 +204,16 @@ export function Navbar() {
               >
                 {items.map((it) => {
                   const isActive = active === it.href;
+                  const isRecognition = it.href === "/recognition";
                   return (
                     <button
                       key={it.href}
                       onClick={() => go(it.href)}
                       className={[
-                        "w-full rounded-xl px-3 py-2 text-left text-sm transition",
-                        isActive
+                        "w-full rounded-xl px-3 py-2 text-left text-sm font-medium transition",
+                        isRecognition
+                          ? "bg-amber-400 text-black hover:bg-amber-300"
+                          : isActive
                           ? "bg-neutral-900 text-white"
                           : scrolled
                           ? "text-neutral-800 hover:bg-neutral-900/5"
