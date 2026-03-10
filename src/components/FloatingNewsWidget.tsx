@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import Script from 'next/script';
 
 export default function FloatingNewsWidget() {
@@ -398,8 +397,8 @@ export default function FloatingNewsWidget() {
       <Script id="floating-news-widget" strategy="afterInteractive">
         {`
           (function() {
-            const SUPABASE_URL = 'https://dqpqhvaikapnnmablvxh.supabase.co';
-            const SUPABASE_ANON_KEY = 'sb_publishable_puDkOEiv0SunnmhJTrlLoQ_7uoHn90_';
+            const SUPABASE_URL = '${process.env.NEXT_PUBLIC_SUPABASE_URL}';
+            const SUPABASE_ANON_KEY = '${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}';
             
             let allNews = [];
             let currentPage = 1;
@@ -463,7 +462,24 @@ export default function FloatingNewsWidget() {
               }
             });
             
-            // Загрузка новостей
+            // Санитизация текста для предотвращения XSS
+            function esc(str) {
+              if (!str) return '';
+              const div = document.createElement('div');
+              div.textContent = str;
+              return div.innerHTML;
+            }
+            function escUrl(url) {
+              if (!url) return '#';
+              try {
+                const u = new URL(url);
+                if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+              } catch(e) {}
+              return '#';
+            }
+
+            // Загрузка новостей с retry
+            let fetchRetries = 0;
             async function fetchNews() {
               try {
                 const response = await fetch(
@@ -475,22 +491,28 @@ export default function FloatingNewsWidget() {
                     }
                   }
                 );
-                
+
                 if (!response.ok) {
                   throw new Error('Ошибка загрузки');
                 }
-                
+
                 const data = await response.json();
                 allNews = data;
-                
+                fetchRetries = 0;
+
                 // Проверяем новые новости для бейджа
                 const newCount = allNews.filter(n => !seenNewsIds.has(n.id)).length;
                 lastFetchedCount = newCount;
-                
+
                 updateBadge();
                 renderNews();
               } catch (error) {
-                console.error('Ошибка:', error);
+                // Retry до 3 раз с задержкой
+                if (fetchRetries < 3) {
+                  fetchRetries++;
+                  setTimeout(fetchNews, 3000 * fetchRetries);
+                  return;
+                }
                 content.innerHTML = '<div class="error">Не удалось загрузить новости</div>';
               }
             }
@@ -551,12 +573,11 @@ export default function FloatingNewsWidget() {
                                       news.image_url.startsWith('data:image');
                   
                   if (isValidImage) {
-                    imageHtml = \`<img src="\${news.image_url}" alt="\${news.title}" class="news-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    imageHtml = \`<img src="\${escUrl(news.image_url)}" alt="\${esc(news.title)}" class="news-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                        <div class="news-image-placeholder" style="display: none;">📰</div>\`;
                   } else {
-                    // Используем тематическую картинку
                     const themeImage = themeImages[news.source] || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400&h=200&fit=crop';
-                    imageHtml = \`<img src="\${themeImage}" alt="\${news.source}" class="news-image" />\`;
+                    imageHtml = \`<img src="\${themeImage}" alt="\${esc(news.source)}" class="news-image" />\`;
                   }
                 } else {
                   // Нет картинки - используем тематическую
@@ -565,13 +586,13 @@ export default function FloatingNewsWidget() {
                 }
                 
                 return \`
-                <div class="news-item" onclick="window.open('\${news.post_url || '#'}', '_blank')">
-                  <span class="news-source">\${news.source}</span>
-                  
+                <div class="news-item" onclick="window.open('\${escUrl(news.post_url)}', '_blank')">
+                  <span class="news-source">\${esc(news.source)}</span>
+
                   \${imageHtml}
-                  
-                  <div class="news-title">\${news.title}</div>
-                  <div class="news-content">\${news.content.substring(0, 150)}\${news.content.length > 150 ? '...' : ''}</div>
+
+                  <div class="news-title">\${esc(news.title)}</div>
+                  <div class="news-content">\${esc((news.content || '').substring(0, 150))}\${(news.content || '').length > 150 ? '...' : ''}</div>
                   <div class="news-footer">
                     <span class="news-date">
                       🕐 \${new Date(news.created_at).toLocaleDateString('ru-RU', { 

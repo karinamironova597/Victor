@@ -4,8 +4,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://iqsafety.kz";
 
   const routes = [
-    "",              // главная страница
-    "/recognition",  // страница распознавания (если она доступна пользователям)
+    "",
+    "/recognition",
+    "/validation",
   ];
 
   return routes.map((path) => ({

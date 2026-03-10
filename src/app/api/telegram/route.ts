@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8540569762:AAFnvJS9v7P6mlfhK1sfGSpQ_nIsY2bbM6s";
-const CHANNEL_USERNAME = "iqsafety_news";
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const CHANNEL_USERNAME = process.env.TELEGRAM_CHANNEL || "iqsafety_news";
 
 // Парсим публичную страницу для получения ID активных постов
 async function getActivePostIds() {
