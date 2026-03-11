@@ -160,7 +160,7 @@ export async function sendAdminNotification(data: ApplicationEmailData) {
 
   try {
     const { data: emailData, error } = await resend.emails.send({
-      from: 'PromKvalBIOT <onboarding@resend.dev>',
+      from: 'PromKvalBIOT <noreply@iqsafety.kz>',
       to: [process.env.NEXT_PUBLIC_ADMIN_EMAIL!],
       subject: `📋 Новая заявка на валидацию: ${data.fullName}`,
       html: emailHtml,
@@ -239,7 +239,7 @@ export async function sendApprovalEmail(email: string, fullName: string) {
   `
 
   await resend.emails.send({
-    from: 'PromKvalBIOT <onboarding@resend.dev>',
+    from: 'PromKvalBIOT <noreply@iqsafety.kz>',
     to: [email],
     subject: '✅ Ваша заявка одобрена - Пройдите тестирование',
     html: emailHtml,
@@ -289,7 +289,7 @@ export async function sendRejectionEmail(email: string, fullName: string, reason
   `
 
   await resend.emails.send({
-    from: 'PromKvalBIOT <onboarding@resend.dev>',
+    from: 'PromKvalBIOT <noreply@iqsafety.kz>',
     to: [email],
     subject: '❌ Ваша заявка на валидацию отклонена',
     html: emailHtml,
@@ -406,7 +406,7 @@ export async function sendTestResultEmail(
 
   try {
     const result = await resend.emails.send({
-      from: 'PromKvalBIOT <onboarding@resend.dev>',
+      from: 'PromKvalBIOT <noreply@iqsafety.kz>',
       to: [process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'karina.mironova.597@gmail.com'],
       subject: `${passed ? '✅ Тест пройден' : '❌ Тест не пройден'} - ${applicantName}${violationsCount && violationsCount > 0 ? ` [⚠️ ${violationsCount} нарушений]` : ''}${videoUrl ? ' [🎥 Видео]' : ''}`,
       html
