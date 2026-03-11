@@ -57,6 +57,8 @@ function ServiceCard({ image, title, text, className }: CardProps) {
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center"
+        role="img"
+        aria-label={title}
         style={{ backgroundImage: `url(${image})` }}
       />
 

@@ -135,6 +135,8 @@ function FigureCard({
       <div className="overflow-hidden rounded-2xl bg-white shadow-[0_14px_40px_rgba(0,0,0,0.18)]">
         <div
           className="aspect-[16/9] bg-cover bg-center"
+          role="img"
+          aria-label={label}
           style={{ backgroundImage: `url(${img})` }}
         />
       </div>

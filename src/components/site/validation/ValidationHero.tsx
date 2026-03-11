@@ -2,8 +2,10 @@ export function ValidationHero() {
   return (
     <section className="relative overflow-hidden pt-32 pb-24 md:pt-40 md:pb-32">
       {/* Background image with overlay */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center"
+        role="img"
+        aria-label="Валидация и аттестация специалистов по безопасности и охране труда"
         style={{
           backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1920&h=1080&fit=crop')`
         }}

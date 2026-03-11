@@ -23,6 +23,8 @@ export function Features() {
             <div className="relative min-h-[300px] overflow-hidden rounded-[28px] bg-neutral-100 md:min-h-[420px]">
               <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                role="img"
+                aria-label="Надежные системы безопасности — оборудование видеонаблюдения и охранных систем"
                 style={{ backgroundImage: "url(/features.png)" }}
               />
               {/* soft inner border like on design */}
