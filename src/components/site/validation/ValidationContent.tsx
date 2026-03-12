@@ -142,6 +142,20 @@ export function ValidationContent() {
           </div>
         </section>
 
+        {/* Аттестат */}
+        <section className="mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Аттестат
+          </h2>
+          <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+            <iframe
+              src="/Аттестат №00024.pdf"
+              className="w-full h-[600px] md:h-[800px]"
+              title="Аттестат №00024"
+            />
+          </div>
+        </section>
+
         {/* ВИДЕО СЕКЦИЯ
         <section className="mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-center">
