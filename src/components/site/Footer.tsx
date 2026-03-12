@@ -8,7 +8,6 @@ export function Footer() {
           {/* Left */}
           <div className="text-sm text-white/80 leading-6">
             <div className="text-white/90">Компания ТОО «ПромКвалБиОТ»</div>
-            <div>БИН: 1234567890</div>
             <div>Все права защищены ©2025.</div>
           </div>
 
@@ -24,8 +23,7 @@ export function Footer() {
 
           {/* Right */}
           <div className="text-sm text-white/80 md:text-right">
-            <div>График работы: 9:00 - 18:00,</div>
-            <div>Пн - Пт</div>
+            <div>График работы: 24/7</div>
           </div>
         </div>
       </div>

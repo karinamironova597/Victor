@@ -407,7 +407,7 @@ export async function sendTestResultEmail(
   try {
     const result = await resend.emails.send({
       from: 'PromKvalBIOT <noreply@iqsafety.kz>',
-      to: [process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'karina.mironova.597@gmail.com'],
+      to: [process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'vicpodn@gmail.com'],
       subject: `${passed ? '✅ Тест пройден' : '❌ Тест не пройден'} - ${applicantName}${violationsCount && violationsCount > 0 ? ` [⚠️ ${violationsCount} нарушений]` : ''}${videoUrl ? ' [🎥 Видео]' : ''}`,
       html
     })
